@@ -228,9 +228,15 @@ impl<'a, T: Encode> Encode for &'a T {
     }
 }
 
-impl<T: Encode> Encode for Box<T> {
+impl<T: Encode + ?Sized> Encode for Box<T> {
     fn encode<E: Encoder>(&self, e: &mut E) -> Result<(), E::Error> {
         <T>::encode(&**self, e)
+    }
+}
+
+impl Decode for Box<str> {
+    fn decode<D: Decoder>(d: &mut D) -> Result<Box<str>, D::Error> {
+        <String>::decode(d).map(|s| s.into_boxed_str())
     }
 }
 

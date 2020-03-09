@@ -19,7 +19,11 @@ pub fn derive_encode(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
                 let ty = &field.ty;
                 let name = match &field.ident {
                     Some(name) => quote!{ #name },
-                    None => quote!{ #i },
+                    None => {
+                        let lit = proc_macro2::Literal::usize_unsuffixed(i);
+
+                        quote!{ #lit }
+                    },
                 };
                 
                 quote!{ <#ty as ::encode::Encode>::encode(&self.#name, e)?; }

@@ -15,6 +15,10 @@ impl BinaryEncoder {
             data: Vec::new(),
         }
     }
+
+    pub fn data(&self) -> &[u8] {
+        &self.data
+    }
 }
 
 impl<'a> BinaryDecoder<'a> {
