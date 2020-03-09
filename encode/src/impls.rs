@@ -380,6 +380,18 @@ impl<A: Decode, B: Decode> Decode for Result<A, B> {
     }
 }
 
+impl Encode for std::path::PathBuf {
+    fn encode<E: Encoder>(&self, e: &mut E) -> Result<(), E::Error> {
+        self.to_str().unwrap().encode(e)
+    }
+}
+
+impl Decode for std::path::PathBuf {
+    fn decode<D: Decoder>(d: &mut D) -> Result<std::path::PathBuf, D::Error> {
+        d.read_str().map(|r| r.into_owned().into())
+    }
+}
+
 macro_rules! impl_tuples {
     () => {};
 
