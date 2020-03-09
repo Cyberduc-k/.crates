@@ -9,6 +9,23 @@ pub struct BinaryDecoder<'a> {
     position: usize,
 }
 
+impl BinaryEncoder {
+    pub fn new() -> BinaryEncoder {
+        BinaryEncoder {
+            data: Vec::new(),
+        }
+    }
+}
+
+impl<'a> BinaryDecoder<'a> {
+    pub fn new(data: &'a [u8]) -> BinaryDecoder<'a> {
+        BinaryDecoder {
+            data,
+            position: 0,
+        }
+    }
+}
+
 impl Encoder for BinaryEncoder {
     type Error = !;
 
