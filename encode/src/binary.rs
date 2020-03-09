@@ -53,6 +53,7 @@ impl Encoder for BinaryEncoder {
     }
 
     fn emit_str(&mut self, v: &str) -> Result<(), Self::Error> {
+        self.emit_usize(v.len())?;
         self.data.extend_from_slice(v.as_bytes());
         Ok(())
     }
