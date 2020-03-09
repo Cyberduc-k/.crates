@@ -26,7 +26,7 @@ macro_rules! interner {
     ($name:ident, $type:ident<$lt:lifetime>, $key:ident<$lt2:lifetime>) => {
         $crate::interner!(imp $name, $type<$lt>, $key<'a>);
         
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
         pub struct $key<'a>(*mut $type<'a>, ::std::marker::PhantomData<&'a mut $type<'a>>);
         
         impl<'a> $key<'a> {
@@ -54,12 +54,18 @@ macro_rules! interner {
                 unsafe { &mut *self.0 }
             }
         }
+
+        impl<'a> ::std::hash::Hash for $key<'a> {
+            fn hash<H: ::std::hash::Hasher>(&self, state: &mut H) {
+                (&**self).hash(state);
+            }
+        }
     };
     
     ($name:ident, $type:ident, $key:ident<$lt2:lifetime>) => {
         $crate::interner!(imp $name, $type, $key<'a>);
         
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
         pub struct $key<$lt2>(*mut $type, ::std::marker::PhantomData<&$lt2 mut $type>);
         
         impl<'a> $key<'a> {
@@ -87,12 +93,18 @@ macro_rules! interner {
                 unsafe { &mut *self.0 }
             }
         }
+
+        impl<'a> ::std::hash::Hash for $key<'a> {
+            fn hash<H: ::std::hash::Hasher>(&self, state: &mut H) {
+                (&**self).hash(state);
+            }
+        }
     };
     
     ($name:ident, $type:ident $(<$lt:lifetime>)?, $key:ident) => {
         $crate::interner!(imp $name, $type $(<$lt>)?, $key);
         
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
         pub struct $key(*mut $type, ::std::marker::PhantomData<$type>);
         
         impl $key {
@@ -118,6 +130,12 @@ macro_rules! interner {
         impl ::std::ops::DerefMut for $key {
             fn deref_mut(&mut self) -> &mut $type {
                 unsafe { &mut *self.0 }
+            }
+        }
+
+        impl ::std::hash::Hash for $key {
+            fn hash<H: ::std::hash::Hasher>(&self, state: &mut H) {
+                (&**self).hash(state);
             }
         }
     };
