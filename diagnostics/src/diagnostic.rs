@@ -83,6 +83,19 @@ impl Severity {
     }
 }
 
+impl From<&str> for Severity {
+    fn from(src: &str) -> Severity {
+        match src.to_lowercase().as_str() {
+            "e" | "error" => Severity::Error,
+            "w" | "warn" | "warning" => Severity::Warning,
+            "i" | "info" => Severity::Info,
+            "h" | "help" => Severity::Help,
+            "b" | "bug" => Severity::Bug,
+            _ => Severity::Error,
+        }
+    }
+}
+
 pub trait IntoOption<T = String> {
     fn into_option(self) -> Option<T>;
 }
