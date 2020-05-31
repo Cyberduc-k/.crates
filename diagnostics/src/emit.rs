@@ -28,13 +28,21 @@ pub fn emit(diagnostic: &crate::Diagnostic) {
 
     for (file, (source, labels)) in &files {
         let start_offset = labels
-            .first()
+            .iter()
+            .min_by_key(|l| l.span.unwrap().start.offset)
             .unwrap()
             .span
             .unwrap()
             .line_start(false)
             .offset;
-        let end_offset = labels.last().unwrap().span.unwrap().line_end(false).offset;
+        let end_offset = labels
+            .iter()
+            .max_by_key(|l| l.span.unwrap().end.offset)
+            .unwrap()
+            .span
+            .unwrap()
+            .line_end(false)
+            .offset;
         let mut slice = Slice {
             source: &source[start_offset..end_offset],
             line_start: labels.first().unwrap().span.unwrap().start.line,
