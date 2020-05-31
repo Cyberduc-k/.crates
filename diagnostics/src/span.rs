@@ -16,14 +16,20 @@ pub struct Position {
 
 impl Span {
     pub fn empty(file: FileId) -> Span {
-        Span { file, .. Default::default() }
+        Span {
+            file,
+            ..Default::default()
+        }
     }
-    
+
     pub fn to(self, other: Span) -> Span {
         assert_eq!(self.file, other.file);
-        Span { start: self.start, .. other }
+        Span {
+            start: self.start,
+            ..other
+        }
     }
-    
+
     pub fn line_start(&self, end: bool) -> Position {
         if end {
             Position {
@@ -42,7 +48,13 @@ impl Span {
 
     pub fn line_end(&self, start: bool) -> Position {
         if start {
-            let len = self.file.source.lines().nth(self.start.line).unwrap().len();
+            let len = self
+                .file
+                .source
+                .lines()
+                .nth(self.start.line)
+                .unwrap_or("")
+                .len();
 
             Position {
                 offset: self.start.offset + (len - self.start.col),
@@ -50,7 +62,13 @@ impl Span {
                 col: len,
             }
         } else {
-            let len = self.file.source.lines().nth(self.end.line).unwrap().len();
+            let len = self
+                .file
+                .source
+                .lines()
+                .nth(self.end.line)
+                .unwrap_or("")
+                .len();
 
             Position {
                 offset: self.end.offset + (len - self.end.col),

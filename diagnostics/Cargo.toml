@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 intern = { path = "../intern" }
 termcolor = "1.1.0"
+annotate-snippets = { version = "0.8.0", features=["color"] }

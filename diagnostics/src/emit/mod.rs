@@ -1,88 +1,90 @@
-pub mod border;
-pub mod header;
-pub mod file;
-pub mod source;
-pub mod snippet;
-pub mod underline;
-pub mod note;
+use crate::Severity;
+use annotate_snippets::{
+    display_list::{DisplayList, FormatOptions},
+    snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
+};
+use std::collections::HashMap;
 
-use termcolor::{WriteColor, ColorSpec, StandardStream};
-use std::io;
+pub fn emit(diagnostic: &crate::Diagnostic) {
+    let mut snippet = Snippet::default();
+    let code = diagnostic.code.map(|code| format!("{:0>4}", code));
+    let mut files = HashMap::new();
 
-pub fn emit(diagnostic: &crate::Diagnostic) -> io::Result<()> {
-    use std::collections::BTreeMap;
-
-    let mut e = match &diagnostic.severity {
-        crate::Severity::Bug | crate::Severity::Error => StandardStream::stderr(termcolor::ColorChoice::Always),
-        _ => StandardStream::stdout(termcolor::ColorChoice::Always),
-    };
-
-    let last_line = diagnostic.labels.iter().fold(1, |acc, label| {
-        usize::max(acc, label.span.unwrap_or_default().end.line + 1)
-    });
-
-    let gutter_width = format!(" {} ", last_line).len();
-
-    let header = header::Header {
-        severity: diagnostic.severity,
-        code: diagnostic.code,
-        message: &diagnostic.message,
-    };
-
-    let mut label_groups = BTreeMap::new();
-    
     for label in &diagnostic.labels {
-        if let Some(span) = &label.span {
-            label_groups.entry(span.file).or_insert(Vec::new()).push(label.clone());
+        if let Some(span) = label.span {
+            files
+                .entry(span.file.name.to_string_lossy().into_owned())
+                .or_insert((span.file.source.clone(), Vec::new()))
+                .1
+                .push(label);
+        } else {
+            snippet.footer.push(Annotation {
+                label: label.message.as_ref().map(|s| s.as_str()),
+                id: None,
+                annotation_type: label.severity.into(),
+            });
         }
     }
-    
-    let primary_file = diagnostic.labels[0].span.unwrap().file;
-    let mut primary_labels = label_groups.remove(&primary_file).expect("no labels");
 
-    primary_labels.sort_by(|a, b| a.span.cmp(&b.span));
-    primary_labels.reverse();
-    primary_labels.sort_by(|a, b| (a.span.unwrap().start.line == a.span.unwrap().end.line).cmp(&(b.span.unwrap().start.line == b.span.unwrap().end.line)));
-
-    let snippet = snippet::Snippet {
-        first: true,
-        labels: &primary_labels,
-        gutter_width,
-    };
-
-    header.emit(&mut e)?;
-    snippet.emit(&mut e)?;
-
-    for (_, mut labels) in label_groups {
-        labels.sort_by(|a, b| a.span.cmp(&b.span));
-        labels.reverse();
-        labels.sort_by(|a, b| (a.span.unwrap().start.line == a.span.unwrap().end.line).cmp(&(b.span.unwrap().start.line == b.span.unwrap().end.line)));
-
-        let snippet = snippet::Snippet {
-            first: false,
-            labels: &labels,
-            gutter_width,
+    for (file, (source, labels)) in &files {
+        let start_offset = labels
+            .first()
+            .unwrap()
+            .span
+            .unwrap()
+            .line_start(false)
+            .offset;
+        let end_offset = labels.last().unwrap().span.unwrap().line_end(false).offset;
+        let mut slice = Slice {
+            source: &source[start_offset..end_offset],
+            line_start: labels.first().unwrap().span.unwrap().start.line,
+            origin: Some(file.as_str()),
+            fold: false,
+            annotations: Vec::new(),
         };
 
-        snippet.emit(&mut e)?;
-    }
-    
-    let notes = diagnostic.labels.iter().filter(|l| l.span.is_none()).collect::<Vec<_>>();
+        for label in labels {
+            let span = label.span.unwrap();
+            let text = label.message.as_ref().map(|s| s.as_str()).unwrap_or("");
+            let range = (
+                span.start.offset - start_offset,
+                span.end.offset - start_offset,
+            );
 
-    for note in notes {
-        note::Note {
-            gutter_width,
-            label: note,
-        }.emit(&mut e)?;
+            slice.annotations.push(SourceAnnotation {
+                label: text,
+                annotation_type: label.severity.into(),
+                range,
+            });
+        }
+
+        snippet.slices.push(slice);
     }
-    
-    e.reset()?;
-    
-    use io::Write;
-    
-    writeln!(&mut e)
+
+    snippet.title = Some(Annotation {
+        label: Some(&diagnostic.message),
+        id: code.as_ref().map(|s| s.as_str()),
+        annotation_type: diagnostic.severity.into(),
+    });
+
+    snippet.opt = FormatOptions {
+        anonymized_line_numbers: false,
+        color: true,
+    };
+
+    let display_list = DisplayList::from(snippet);
+
+    println!("{}", display_list);
 }
 
-pub trait Emit {
-    fn emit(&self, e: &mut impl WriteColor) -> io::Result<()>;
+impl Into<AnnotationType> for Severity {
+    fn into(self) -> AnnotationType {
+        match self {
+            Severity::Bug => AnnotationType::Error,
+            Severity::Error => AnnotationType::Error,
+            Severity::Warning => AnnotationType::Warning,
+            Severity::Info => AnnotationType::Info,
+            Severity::Help => AnnotationType::Help,
+        }
+    }
 }
