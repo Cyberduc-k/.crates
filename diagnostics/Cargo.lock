@@ -14,15 +14,7 @@ name = "diagnostics"
 version = "0.1.0"
 dependencies = [
  "annotate-snippets",
- "intern",
  "termcolor",
-]
-
-[[package]]
-name = "intern"
-version = "0.1.0"
-dependencies = [
- "typed-arena",
 ]
 
 [[package]]
@@ -33,12 +25,6 @@ checksum = "bb6bfa289a4d7c5766392812c0a1f4c1ba45afa1ad47803c11e1f407d846d75f"
 dependencies = [
  "winapi-util",
 ]
-
-[[package]]
-name = "typed-arena"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0685c84d5d54d1c26f7d3eb96cd41550adb97baed141a761cf335d3d33bcd0ae"
 
 [[package]]
 name = "winapi"
