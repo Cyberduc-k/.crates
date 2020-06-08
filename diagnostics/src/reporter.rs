@@ -1,16 +1,16 @@
 use crate::{Diagnostic, Severity, Span};
-use std::cell::RefCell;
+use std::sync::Mutex;
 
 #[derive(Default)]
 pub struct Reporter {
-    diagnostics: RefCell<Vec<Diagnostic>>,
+    diagnostics: Mutex<Vec<Diagnostic>>,
 }
 
 impl Reporter {
     pub fn add(&self, diagnostic: Diagnostic) {
         let is_bug = diagnostic.severity == Severity::Bug;
 
-        self.diagnostics.borrow_mut().push(diagnostic);
+        self.diagnostics.lock().unwrap().push(diagnostic);
 
         if is_bug {
             self.report(true);
@@ -18,22 +18,27 @@ impl Reporter {
     }
 
     pub fn remove(&self, span: Span, code: u16) {
-        self.diagnostics.borrow_mut().retain(|diag| {
-            !(diag.labels[0].span == Some(span) && diag.code == Some(code))
-        });
+        self.diagnostics
+            .lock()
+            .unwrap()
+            .retain(|diag| !(diag.labels[0].span == Some(span) && diag.code == Some(code)));
     }
-    
+
     pub fn has_errors(&self) -> bool {
-        self.diagnostics.borrow().iter().any(|d| d.severity == Severity::Error || d.severity == Severity::Bug)
+        self.diagnostics
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|d| d.severity == Severity::Error || d.severity == Severity::Bug)
     }
-    
+
     pub fn report(&self, exit: bool) {
-        self.diagnostics.borrow_mut().sort_by_key(|d| d.severity);
-        
-        for d in self.diagnostics.borrow().iter() {
+        self.diagnostics.lock().unwrap().sort_by_key(|d| d.severity);
+
+        for d in self.diagnostics.lock().unwrap().iter() {
             let _ = crate::emit::emit(d);
         }
-        
+
         if self.has_errors() && exit {
             std::process::exit(0);
         }
