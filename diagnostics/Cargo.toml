@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 termcolor = "1.1.0"
 annotate-snippets = { version = "0.8.0", features=["color"] }
+serde = { version = "1.0.114", features=["derive"] }

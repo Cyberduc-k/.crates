@@ -2,7 +2,19 @@ use std::path::PathBuf;
 
 static mut FILE_INTERNER: FileInterner = FileInterner::new();
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    serde::Serialize,
+    serde::Deserialize,
+)]
 pub struct FileId(usize);
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]

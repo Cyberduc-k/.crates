@@ -43,9 +43,10 @@ pub fn emit(diagnostic: &crate::Diagnostic) {
             .unwrap()
             .line_end(false)
             .offset;
+
         let mut slice = Slice {
             source: &source[start_offset..end_offset],
-            line_start: labels.first().unwrap().span.unwrap().start.line,
+            line_start: labels.first().unwrap().span.unwrap().start.line + 1,
             origin: Some(file.as_str()),
             fold: false,
             annotations: Vec::new(),

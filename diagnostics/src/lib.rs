@@ -1,15 +1,15 @@
 #![feature(decl_macro)]
 
-mod span;
-mod file;
 mod diagnostic;
-mod reporter;
 mod emit;
+mod file;
+mod reporter;
+mod span;
 
-pub use file::*;
-pub use span::*;
 pub use diagnostic::*;
+pub use file::*;
 pub use reporter::*;
+pub use span::*;
 
 pub macro unimpl($span:expr, $msg:literal $(, $arg:expr)*) {
     $crate::Diagnostic::new($crate::Severity::Bug, None, format!("Unimplemented feature: {}", format!($msg $(, $arg)*)))
