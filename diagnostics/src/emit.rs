@@ -55,10 +55,14 @@ pub fn emit(diagnostic: &crate::Diagnostic) {
         for label in labels {
             let span = label.span.unwrap();
             let text = label.message.as_ref().map(|s| s.as_str()).unwrap_or("");
-            let range = (
+            let mut range = (
                 span.start.offset - start_offset,
                 span.end.offset - start_offset,
             );
+
+            if span.start.line != span.end.line {
+                range.1 -= 1;
+            }
 
             slice.annotations.push(SourceAnnotation {
                 label: text,
