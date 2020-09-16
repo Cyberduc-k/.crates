@@ -162,6 +162,8 @@ impl Line<'_> {
                         )?;
                         writer.reset()?;
                         writeln!(writer)?;
+                    } else {
+                        before[x - 1].0 = '│';
                     }
                 }
                 AnnotationKind::MultiLine(_) => {}
