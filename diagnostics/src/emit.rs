@@ -1,11 +1,22 @@
-use crate::Severity;
-use annotate_snippets::{
-    display_list::{DisplayList, FormatOptions},
-    snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
-};
-use std::collections::HashMap;
+pub mod build;
+pub mod snippet;
+pub mod write;
+
+// use crate::Severity;
+// use annotate_snippets::{
+//     display_list::{DisplayList, FormatOptions},
+//     snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
+// };
+// use std::collections::HashMap;
 
 pub fn emit(diagnostic: &crate::Diagnostic) {
+    let mut writer = termcolor::StandardStream::stderr(termcolor::ColorChoice::Auto);
+    let snippet = build::build(diagnostic);
+
+    snippet.write(&mut writer).unwrap();
+}
+
+/*pub fn emit(diagnostic: &crate::Diagnostic) {
     let mut snippet = Snippet::default();
     let code = diagnostic.code.map(|code| format!("{:0>4}", code));
     let mut files = HashMap::new();
@@ -107,4 +118,4 @@ impl Into<AnnotationType> for Severity {
             Severity::Help => AnnotationType::Help,
         }
     }
-}
+}*/

@@ -25,7 +25,11 @@ pub enum Severity {
 }
 
 impl Diagnostic {
-    pub fn new(severity: Severity, code: impl Into<Option<u16>>, message: impl Into<String>) -> Diagnostic {
+    pub fn new(
+        severity: Severity,
+        code: impl Into<Option<u16>>,
+        message: impl Into<String>,
+    ) -> Diagnostic {
         Diagnostic {
             severity,
             code: code.into(),
@@ -33,7 +37,7 @@ impl Diagnostic {
             labels: Vec::new(),
         }
     }
-    
+
     pub fn label<M, S>(mut self, severity: Severity, span: S, message: M) -> Diagnostic
     where
         M: IntoOption<String>,
@@ -44,14 +48,14 @@ impl Diagnostic {
             span: span.into(),
             message: message.into_option(),
         });
-        
+
         self
     }
-    
+
     pub fn note(self, message: impl Into<String>) -> Diagnostic {
         self.label(Severity::Info, None, Some(message.into()))
     }
-    
+
     pub fn help(self, message: impl Into<String>) -> Diagnostic {
         self.label(Severity::Help, None, Some(message.into()))
     }
@@ -60,7 +64,7 @@ impl Diagnostic {
 impl Severity {
     pub fn color(&self) -> termcolor::ColorSpec {
         let mut spec = termcolor::ColorSpec::new();
-        
+
         match self {
             Severity::Bug => spec.set_fg(Some(termcolor::Color::Red)).set_intense(true),
             Severity::Error => spec.set_fg(Some(termcolor::Color::Red)),
@@ -68,7 +72,7 @@ impl Severity {
             Severity::Info => spec.set_fg(Some(termcolor::Color::Cyan)),
             Severity::Help => spec.set_fg(Some(termcolor::Color::Green)).set_intense(true),
         };
-        
+
         spec
     }
 
@@ -79,6 +83,16 @@ impl Severity {
             Severity::Warning => "warning",
             Severity::Info => "info",
             Severity::Help => "help",
+        }
+    }
+
+    pub fn symbol(&self) -> &'static str {
+        match self {
+            Severity::Bug => "^",
+            Severity::Error => "^",
+            Severity::Warning => "~",
+            Severity::Info => "-",
+            Severity::Help => "-",
         }
     }
 }
