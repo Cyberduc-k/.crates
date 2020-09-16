@@ -61,7 +61,12 @@ pub fn emit(diagnostic: &crate::Diagnostic) {
             );
 
             if span.start.line != span.end.line {
+                range.0 = span.line_start(false).offset - start_offset;
                 range.1 -= 1;
+            }
+
+            if range.0 == range.1 {
+                range.1 += 1;
             }
 
             slice.annotations.push(SourceAnnotation {
@@ -71,6 +76,7 @@ pub fn emit(diagnostic: &crate::Diagnostic) {
             });
         }
 
+        // slice.annotations.reverse();
         snippet.slices.push(slice);
     }
 
@@ -81,6 +87,7 @@ pub fn emit(diagnostic: &crate::Diagnostic) {
     });
 
     snippet.opt = FormatOptions {
+        margin: None,
         anonymized_line_numbers: false,
         color: true,
     };

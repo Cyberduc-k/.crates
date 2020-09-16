@@ -46,6 +46,10 @@ impl Span {
         }
     }
 
+    pub fn is_dummy(&self) -> bool {
+        self.start == Position::default() && self.end == Position::default()
+    }
+
     pub fn to(self, other: Span) -> Span {
         assert_eq!(self.file, other.file);
         Span {
